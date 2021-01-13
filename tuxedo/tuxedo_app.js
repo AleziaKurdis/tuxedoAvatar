@@ -88,6 +88,7 @@
         if ( eventObj.chanel === chanel){
             if ( eventObj.action === "update"){
                 if (eventObj.isModelChange) {
+                    print("DATA!");
                     deleteDemo();
                     createDemo(eventObj.dna);
                 } else {
