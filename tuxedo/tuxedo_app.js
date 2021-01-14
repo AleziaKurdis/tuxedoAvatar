@@ -57,15 +57,17 @@
         if (dna != ""){
             dnaParam = "?dna=" + dna;
         }
+        var positionDemo = Vec3.sum(MyAvatar.position, Vec3.multiplyQbyV(MyAvatar.orientation, { x: 0, y: 0, z: -1.3 }));
         modelID = Entities.addEntity({
-                    type: "model",
+                    type: "Model",
                     name: "TUXEDO AVATAR DEMO",
                     modelURL: FST + dnaParam,
                     grab: {
                         grabbable: true
                     },
-                    position: Vec3.sum(MyAvatar.position, Vec3.multiplyQbyV(MyAvatar.orientation, { x: 0, y: 0, z: -3 }))
-                }, "local");
+                    position: positionDemo,
+                    rotation: Quat.lookAtSimple( MyAvatar.position, positionDemo )
+                },"local");
         
     }
 
@@ -88,7 +90,6 @@
         if ( eventObj.chanel === chanel){
             if ( eventObj.action === "update"){
                 if (eventObj.isModelChange) {
-                    print("DATA!");
                     deleteDemo();
                     createDemo(eventObj.dna);
                 } else {
@@ -96,10 +97,10 @@
                 }
             }
             if ( eventObj.action === "wear"){
-                
+                MyAvatar.useFullAvatarURL(FST + "?dna=" + eventObj.dna, eventObj.avatarName);               
             }
             if ( eventObj.action === "bookmark"){
-
+                AvatarBookmarks.addBookmark(eventObj.avatarName);
             }                   
         }
     }

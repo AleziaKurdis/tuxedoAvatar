@@ -49,10 +49,16 @@
             }
             font.label{
                 font-family: arial,sans-serif, helvetica;  
+                font-weight: 700; 
+                text-decoration: none; 
+                font-size: 12px; 
+                color:#000000;             
+            }
+            button {
+                font-family: arial,sans-serif, helvetica;  
                 font-weight: 600; 
                 text-decoration: none; 
                 font-size: 12px; 
-                color:#fff2d0;                
             }
             h1{
                 font-family: arial,sans-serif, helvetica;  
@@ -111,26 +117,18 @@
             }
 
             var chanel = "tuxedo.avatars.ak.vircadia";
-            EventBridge.scriptEventReceived.connect(function(message){
 
-                //messageObj = parseJSON(message);
 
-                //react to the "message" string or to the "messageObj" JSON object. 
-
-            });
-
-            /*
-			function copyToClipboard(data) {
-				var $temp = $("<input>");
-				$("body").append($temp);
-				$temp.val(data).select();
-				document.execCommand("copy");
-				$temp.remove();
-			}
-            */
-
+            var hasWorn = false;
+            var doNotUpdate = false;
+            
             function loadMaterial() {
+                hasWorn = false;
+                doNotUpdate = true;
+                document.getElementById("bookmark").disabled = true;
+                document.tuxedoform.avatarname.value = "";
                 document.tuxedoform.gender.value = "Y";
+                
                 
                 //BODY
                 document.tuxedoform.skincolor.value = "#fce7dc";
@@ -143,47 +141,37 @@
                 document.tuxedoform.haircolor.style.backgroundColor = "#4a301b"; 
                 document.tuxedoform.haircolor.style.color = "#4a301b";
                 document.tuxedoform.hairroughness.value = 102;
-                document.tuxedoform.hairroughnessvalue.value = 102;
-                document.tuxedoform.hairmetallic.value = 37;
-                document.tuxedoform.hairmetallicvalue.value = 37;
+                document.tuxedoform.hairmetallic.value = 48;
 
                 //MALE CLOTHES
                 document.tuxedoform.suitecolor.value = "#000000";
                 document.tuxedoform.suitecolor.style.backgroundColor = "#000000"; 
                 document.tuxedoform.suitecolor.style.color = "#000000";
                 document.tuxedoform.suiteroughness.value = 180;
-                document.tuxedoform.suiteroughnessvalue.value = 180;
                 document.tuxedoform.suitemetallic.value = 2;
-                document.tuxedoform.suitemetallicvalue.value = 2;
 
                 document.tuxedoform.pantscolor.value = "#000000";
                 document.tuxedoform.pantscolor.style.backgroundColor = "#000000"; 
                 document.tuxedoform.pantscolor.style.color = "#000000";
                 document.tuxedoform.pantsroughness.value = 180;
-                document.tuxedoform.pantsroughnessvalue.value = 180;
                 document.tuxedoform.pantsmetallic.value = 2;
-                document.tuxedoform.pantsmetallicvalue.value = 2;
 
                 document.tuxedoform.shirtcolor.value = "#e8e8e8";
                 document.tuxedoform.shirtcolor.style.backgroundColor = "#e8e8e8"; 
                 document.tuxedoform.shirtcolor.style.color = "#e8e8e8";
                 document.tuxedoform.shirtroughness.value = 128;
-                document.tuxedoform.shirtroughnessvalue.value = 128;
                 document.tuxedoform.shirtmetallic.value = 2;
-                document.tuxedoform.shirtmetallicvalue.value = 2;
 
                 document.tuxedoform.shoescolor.value = "#000000";
                 document.tuxedoform.shoescolor.style.backgroundColor = "#000000"; 
                 document.tuxedoform.shoescolor.style.color = "#000000";
                 document.tuxedoform.shoesroughness.value = 15;
-                document.tuxedoform.shoesroughnessvalue.value = 15;
                 document.tuxedoform.shoesmetallic.value = 2;
-                document.tuxedoform.shoesmetallicvalue.value = 2;                
+                
                 //FEMALE CLOTHES
-                
-                
-                
+
                 toggleClothesPanel("tabY");
+                doNotUpdate = false;
                 update(false);
             }
 
@@ -215,15 +203,25 @@
                     dna = dna + unHashtag(document.tuxedoform.suitecolor.value) + decimalToHex(document.tuxedoform.suiteroughness.value,2 ) + decimalToHex(document.tuxedoform.suitemetallic.value,2 ) + "00_"; //SUITE
                     dna = dna + unHashtag(document.tuxedoform.pantscolor.value) + decimalToHex(document.tuxedoform.pantsroughness.value,2 ) + decimalToHex(document.tuxedoform.pantsmetallic.value,2 ) + "00_"; //PANTS
                     dna = dna + unHashtag(document.tuxedoform.shirtcolor.value) + decimalToHex(document.tuxedoform.shirtroughness.value,2 ) + decimalToHex(document.tuxedoform.shirtmetallic.value,2 ) + "00_"; //SHIRT    
-                    dna = dna + unHashtag(document.tuxedoform.shoescolor.value) + decimalToHex(document.tuxedoform.shoesroughness.value,2 ) + decimalToHex(document.tuxedoform.shoesmetallic.value,2 ) + "00_"; //SHOES
+                    dna = dna + unHashtag(document.tuxedoform.shoescolor.value) + decimalToHex(document.tuxedoform.shoesroughness.value,2 ) + decimalToHex(document.tuxedoform.shoesmetallic.value,2 ) + "00"; //SHOES
                 } else if (document.tuxedoform.gender.value == "X") {
                     //TBD
                 }
                 
                 return dna;
             }
+
+            function prefillColor(element, color) {
+                element.value = color; 
+                element.style.backgroundColor = color; 
+                element.style.color = color;
+                update(false);
+            }
             
             function update(gender) {
+                if (doNotUpdate) {
+                    return;
+                }
                 //if gender get change then it must be set to true, otherwise keep it false and it will only update
                 var dna = getDNA();
                 
@@ -235,30 +233,50 @@
                 };
                 
                 EventBridge.emitWebEvent(JSON.stringify(message));
-                
+                hasWorn = false;
             }
           
+            function nameUpdate() {
+                manageBookmarkBtn();
+            }
 
-            function wear() {
+            function manageBookmarkBtn() {
+                if (hasWorn) {
+                    if (document.tuxedoform.avatarname.value === "") {
+                        document.getElementById("bookmark").disabled = true;
+                    } else {
+                        document.getElementById("bookmark").disabled = false;
+                    }
+                } else {
+                    document.getElementById("bookmark").disabled = true;
+                }
+            }
+
+            function wearTheAvatar() {
                 var dna = getDNA();            
                 var message = {
                     "chanel": chanel,
                     "action": "wear",
+                    "avatarName": document.tuxedoform.avatarname.value,
                     "dna": dna
                 };
                 
-                EventBridge.emitWebEvent(JSON.stringify(message));            
+                EventBridge.emitWebEvent(JSON.stringify(message));
+                hasWorn = true;
+                manageBookmarkBtn();                
             }
             
-            function bookmark() {
+            function bookmarkTheAvatar() {
                 var dna = getDNA();            
                 var message = {
                     "chanel": chanel,
                     "action": "bookmark",
-                    "dna": dna
+                    "avatarName": document.tuxedoform.avatarname.value
                 };
                 
-                EventBridge.emitWebEvent(JSON.stringify(message));                  
+                EventBridge.emitWebEvent(JSON.stringify(message)); 
+                hasWorn = false;
+                manageBookmarkBtn();
             }             
 
             function toggleClothesPanel(genderTab) {
@@ -283,8 +301,8 @@
                     <td class='title' colspan='9'>TUXEDO AVATARS</td>
                 </tr><tr>
                 <td style= 'width: 100%; text-align: right;'>
-                <a href='#' onclick='wear();'><img class='save' src="wear.png"></a>
-                &nbsp;&nbsp;<a href='#' onclick='bookmark();'><img class='save' src="bookmark.png"></a>
+                <button type="button" id="wear" onClick="wearTheAvatar();">WEAR</button>
+                &nbsp;&nbsp;<button type="button" id="bookmark" onClick="bookmarkTheAvatar();">BOOKMARK</button>
                 </td>
                 </tr></table>
             </div>
@@ -292,20 +310,25 @@
             <div class='info'>
             <table style= 'width: 100%;'><tr><td style= 'width: 20%; vertical-align: top;'><h1>GENDER:</h1></td><td style= 'width: 20%; vertical-align: top;'>
             <input type="radio" checked name = 'gender' value = 'Y' oninput="toggleClothesPanel('tabY'); update(true);"> <img src="male.png">
-            </td><td style= 'width: 60%; vertical-align: top;'>
+            </td><td style= 'width: 20%; vertical-align: top;'>
             <input type="radio" name = 'gender' value = 'X' oninput="toggleClothesPanel('tabX'); update(true);"> <img src="female.png">
-            </td></tr></table>
+            </td>
+            <td style= 'width: 5%; vertical-align: top;'>&nbsp;</td>
+            <td style= 'width: 35%; vertical-align: top;'>
+            <font class='label' style="color: #000000;">Name:</font> <input name = 'avatarname' type = 'text' value="" style="width:90%;" oninput='nameUpdate();'>
+            </td>
+            </tr></table>
             </div>
             
             <div class='group'><h1>SKIN</h1>           
             <font class='label'>Color:</font> <input name = 'skincolor' type = 'text' value="#fce7dc"><br>
             <table><tr>
-                <td style = "width: 16px; height: 16px; background-color: #fce7dc; border: solid 2px #000000;" onClick = 'document.tuxedoform.skincolor.value="#fce7dc"; document.tuxedoform.skincolor.style.backgroundColor ="#fce7dc"; document.tuxedoform.skincolor.style.color ="#fce7dc";'>
-                <td style = "width: 16px; height: 16px; background-color: #e3d4bc; border: solid 2px #000000;" onClick = 'document.tuxedoform.skincolor.value="#e3d4bc"; document.tuxedoform.skincolor.style.backgroundColor ="#e3d4bc"; document.tuxedoform.skincolor.style.color ="#e3d4bc";'>
-                <td style = "width: 16px; height: 16px; background-color: #cfb69b; border: solid 2px #000000;" onClick = 'document.tuxedoform.skincolor.value="#cfb69b"; document.tuxedoform.skincolor.style.backgroundColor ="#cfb69b"; document.tuxedoform.skincolor.style.color ="#cfb69b";'>
-                <td style = "width: 16px; height: 16px; background-color: #9e8567; border: solid 2px #000000;" onClick = 'document.tuxedoform.skincolor.value="#9e8567"; document.tuxedoform.skincolor.style.backgroundColor ="#9e8567"; document.tuxedoform.skincolor.style.color ="#9e8567";'>
-                <td style = "width: 16px; height: 16px; background-color: #826040; border: solid 2px #000000;" onClick = 'document.tuxedoform.skincolor.value="#826040"; document.tuxedoform.skincolor.style.backgroundColor ="#826040"; document.tuxedoform.skincolor.style.color ="#826040";'>
-                <td style = "width: 16px; height: 16px; background-color: #543f35; border: solid 2px #000000;" onClick = 'document.tuxedoform.skincolor.value="#543f35"; document.tuxedoform.skincolor.style.backgroundColor ="#543f35"; document.tuxedoform.skincolor.style.color ="#543f35";'>
+                <td style = "width: 16px; height: 16px; background-color: #fce7dc; border: solid 2px #000000;" onClick = 'prefillColor(document.tuxedoform.skincolor, "#fce7dc");'>
+                <td style = "width: 16px; height: 16px; background-color: #e3d4bc; border: solid 2px #000000;" onClick = 'prefillColor(document.tuxedoform.skincolor, "#e3d4bc");'>
+                <td style = "width: 16px; height: 16px; background-color: #cfb69b; border: solid 2px #000000;" onClick = 'prefillColor(document.tuxedoform.skincolor, "#cfb69b");'>
+                <td style = "width: 16px; height: 16px; background-color: #9e8567; border: solid 2px #000000;" onClick = 'prefillColor(document.tuxedoform.skincolor, "#9e8567");'>
+                <td style = "width: 16px; height: 16px; background-color: #826040; border: solid 2px #000000;" onClick = 'prefillColor(document.tuxedoform.skincolor, "#826040");'>
+                <td style = "width: 16px; height: 16px; background-color: #543f35; border: solid 2px #000000;" onClick = 'prefillColor(document.tuxedoform.skincolor, "#543f35");'>
             </tr></table>
             </div>
             
@@ -324,20 +347,20 @@
             <div class='group'><h1>HAIR</h1>
             <font class='label'>Color:</font> <input name = 'haircolor' type = 'text' value="#4a301b"><br>
             <table><tr>
-                <td style = "width: 16px; height: 16px; background-color: #929596; border: solid 2px #000000;" onClick = 'document.tuxedoform.haircolor.value="#929596"; document.tuxedoform.haircolor.style.backgroundColor ="#929596"; document.tuxedoform.haircolor.style.color ="#929596";'>            
-                <td style = "width: 16px; height: 16px; background-color: #000000; border: solid 2px #000000;" onClick = 'document.tuxedoform.haircolor.value="#000000"; document.tuxedoform.haircolor.style.backgroundColor ="#000000"; document.tuxedoform.haircolor.style.color ="#000000";'>
-                <td style = "width: 16px; height: 16px; background-color: #3b2d32; border: solid 2px #000000;" onClick = 'document.tuxedoform.haircolor.value="#3b2d32"; document.tuxedoform.haircolor.style.backgroundColor ="#3b2d32"; document.tuxedoform.haircolor.style.color ="#3b2d32";'>
-                <td style = "width: 16px; height: 16px; background-color: #4a301b; border: solid 2px #000000;" onClick = 'document.tuxedoform.haircolor.value="#4a301b"; document.tuxedoform.haircolor.style.backgroundColor ="#4a301b"; document.tuxedoform.haircolor.style.color ="#4a301b";'>
-                <td style = "width: 16px; height: 16px; background-color: #8a562c; border: solid 2px #000000;" onClick = 'document.tuxedoform.haircolor.value="#8a562c"; document.tuxedoform.haircolor.style.backgroundColor ="#8a562c"; document.tuxedoform.haircolor.style.color ="#8a562c";'>
-                <td style = "width: 16px; height: 16px; background-color: #8c7953; border: solid 2px #000000;" onClick = 'document.tuxedoform.haircolor.value="#8c7953"; document.tuxedoform.haircolor.style.backgroundColor ="#8c7953"; document.tuxedoform.haircolor.style.color ="#8c7953";'>
-                <td style = "width: 16px; height: 16px; background-color: #e6daaa; border: solid 2px #000000;" onClick = 'document.tuxedoform.haircolor.value="#e6daaa"; document.tuxedoform.haircolor.style.backgroundColor ="#e6daaa"; document.tuxedoform.haircolor.style.color ="#e6daaa";'>
-                <td style = "width: 16px; height: 16px; background-color: #ebeded; border: solid 2px #000000;" onClick = 'document.tuxedoform.haircolor.value="#ebeded"; document.tuxedoform.haircolor.style.backgroundColor ="#ebeded"; document.tuxedoform.haircolor.style.color ="#ebeded";'>
+                <td style = "width: 16px; height: 16px; background-color: #929596; border: solid 2px #000000;" onClick = 'prefillColor(document.tuxedoform.haircolor, "#929596");'>            
+                <td style = "width: 16px; height: 16px; background-color: #000000; border: solid 2px #000000;" onClick = 'prefillColor(document.tuxedoform.haircolor, "#000000");'>
+                <td style = "width: 16px; height: 16px; background-color: #3b2d32; border: solid 2px #000000;" onClick = 'prefillColor(document.tuxedoform.haircolor, "#3b2d32");'>
+                <td style = "width: 16px; height: 16px; background-color: #4a301b; border: solid 2px #000000;" onClick = 'prefillColor(document.tuxedoform.haircolor, "#4a301b");'>
+                <td style = "width: 16px; height: 16px; background-color: #8a562c; border: solid 2px #000000;" onClick = 'prefillColor(document.tuxedoform.haircolor, "#8a562c");'>
+                <td style = "width: 16px; height: 16px; background-color: #8c7953; border: solid 2px #000000;" onClick = 'prefillColor(document.tuxedoform.haircolor, "#8c7953");'>
+                <td style = "width: 16px; height: 16px; background-color: #e6daaa; border: solid 2px #000000;" onClick = 'prefillColor(document.tuxedoform.haircolor, "#e6daaa");'>
+                <td style = "width: 16px; height: 16px; background-color: #ebeded; border: solid 2px #000000;" onClick = 'prefillColor(document.tuxedoform.haircolor, "#ebeded");'>
             </tr></table><br>            
-            <font class='label'>Roughness:</font> <input name = 'hairroughnessvalue' type = 'hidden' size = '5'><br>
-            <input type="range"  style="width:100%;" min="0" max="255" value="0" class="slider" name = 'hairroughness' id = 'hairroughness' oninput="update(false); document.tuxedoform.hairroughnessvalue.value = (this.value);"><br>
+            <font class='label'>Roughness:</font><br>
+            <input type="range"  style="width:100%;" min="0" max="255" value="0" class="slider" name = 'hairroughness' id = 'hairroughness' onchange="update(false);"><br>
             <table style='width:100%'><tr><td style='width: 50%; text-align: left;'><font class = 'Explain'>|&lt; Glossy, polished, lustrous</font></td><td style='width: 50%; text-align: right;'><font class = 'Explain'>Unpolished, mat, rough &gt;|</font></td></tr></table>
-            <font class='label'><br>Metalness:</font> <input name = 'hairmetallicvalue' type = 'hidden' size = '5'><br>
-            <input type="range"  style="width:100%;" min="2" max="255" value="0" class="slider" name = 'hairmetallic' id = 'hairmetallic' oninput="update(false); document.tuxedoform.hairmetallicvalue.value = (this.value);"><br>
+            <font class='label'><br>Metalness:</font><br>
+            <input type="range"  style="width:100%;" min="2" max="255" value="0" class="slider" name = 'hairmetallic' id = 'hairmetallic' onchange="update(false);"><br>
             <table style='width:100%'><tr><td style='width: 15%; text-align: left;'><font class = 'Explain'>|&lt; Nonmetal</font></td><td style='width: 15%; text-align: left;'><font class = 'Explain'>| Hair</font></td><td style='width: 60%; text-align: left;'><font class = 'Explain'>| Chitin</font></td><td style='width: 10%; text-align: right;'><font class = 'Explain'>Metal &gt;|</font></td></tr></table>
             </div>
             
@@ -347,72 +370,72 @@
                 <div class='group'><h1>SUIT</h1>
                 <font class='label'>Color:</font> <input name = 'suitecolor' type = 'text' value="#000000"><br>
                 <table><tr>
-                    <td style = "width: 16px; height: 16px; background-color: #000000; border: solid 2px #000000;" onClick = 'document.tuxedoform.suitecolor.value="#000000"; document.tuxedoform.suitecolor.style.backgroundColor ="#000000"; document.tuxedoform.suitecolor.style.color ="#000000";'>
-                    <td style = "width: 16px; height: 16px; background-color: #252d4d; border: solid 2px #000000;" onClick = 'document.tuxedoform.suitecolor.value="#252d4d"; document.tuxedoform.suitecolor.style.backgroundColor ="#252d4d"; document.tuxedoform.suitecolor.style.color ="#252d4d";'>
-                    <td style = "width: 16px; height: 16px; background-color: #616161; border: solid 2px #000000;" onClick = 'document.tuxedoform.suitecolor.value="#616161"; document.tuxedoform.suitecolor.style.backgroundColor ="#616161"; document.tuxedoform.suitecolor.style.color ="#616161";'>
-                    <td style = "width: 16px; height: 16px; background-color: #595248; border: solid 2px #000000;" onClick = 'document.tuxedoform.suitecolor.value="#595248"; document.tuxedoform.suitecolor.style.backgroundColor ="#595248"; document.tuxedoform.suitecolor.style.color ="#595248";'>
-                    <td style = "width: 16px; height: 16px; background-color: #4b5449; border: solid 2px #000000;" onClick = 'document.tuxedoform.suitecolor.value="#4b5449"; document.tuxedoform.suitecolor.style.backgroundColor ="#4b5449"; document.tuxedoform.suitecolor.style.color ="#4b5449";'>
+                    <td style = "width: 16px; height: 16px; background-color: #000000; border: solid 2px #000000;" onClick = 'prefillColor(document.tuxedoform.suitecolor, "#000000");'>
+                    <td style = "width: 16px; height: 16px; background-color: #252d4d; border: solid 2px #000000;" onClick = 'prefillColor(document.tuxedoform.suitecolor, "#252d4d");'>
+                    <td style = "width: 16px; height: 16px; background-color: #616161; border: solid 2px #000000;" onClick = 'prefillColor(document.tuxedoform.suitecolor, "#616161");'>
+                    <td style = "width: 16px; height: 16px; background-color: #595248; border: solid 2px #000000;" onClick = 'prefillColor(document.tuxedoform.suitecolor, "#595248");'>
+                    <td style = "width: 16px; height: 16px; background-color: #4b5449; border: solid 2px #000000;" onClick = 'prefillColor(document.tuxedoform.suitecolor, "#4b5449");'>
                 </tr></table><br>            
-                <font class='label'>Roughness:</font> <input name = 'suiteroughnessvalue' type = 'hidden' size = '5'><br>
-                <input type="range"  style="width:100%;" min="0" max="255" value="0" class="slider" name = 'suiteroughness' id = 'suiteroughness' oninput="update(false); document.tuxedoform.suiteroughnessvalue.value = (this.value);"><br>
+                <font class='label'>Roughness:</font><br>
+                <input type="range"  style="width:100%;" min="0" max="255" value="0" class="slider" name = 'suiteroughness' id = 'suiteroughness' onchange="update(false);"><br>
                 <table style='width:100%'><tr><td style='width: 50%; text-align: left;'><font class = 'Explain'>|&lt; Glossy, polished, lustrous</font></td><td style='width: 50%; text-align: right;'><font class = 'Explain'>Unpolished, mat, rough &gt;|</font></td></tr></table>
-                <font class='label'><br>Metalness:</font> <input name = 'suitemetallicvalue' type = 'hidden' size = '5'><br>
-                <input type="range"  style="width:100%;" min="2" max="255" value="0" class="slider" name = 'suitemetallic' id = 'suitemetallic' oninput="update(false); document.tuxedoform.suitemetallicvalue.value = (this.value);"><br>
+                <font class='label'><br>Metalness:</font><br>
+                <input type="range"  style="width:100%;" min="2" max="255" value="0" class="slider" name = 'suitemetallic' id = 'suitemetallic' onchange="update(false);"><br>
                 <table style='width:100%'><tr><td style='width: 15%; text-align: left;'><font class = 'Explain'>|&lt; Nonmetal</font></td><td style='width: 15%; text-align: left;'><font class = 'Explain'>| Hair</font></td><td style='width: 60%; text-align: left;'><font class = 'Explain'>| Chitin</font></td><td style='width: 10%; text-align: right;'><font class = 'Explain'>Metal &gt;|</font></td></tr></table>
                 </div>
                 
                 <div class='group'><h1>PANTS</h1>
                 <font class='label'>Color:</font> <input name = 'pantscolor' type = 'text' value="#000000"><br>
                 <table><tr>
-                    <td style = "width: 16px; height: 16px; background-color: #000000; border: solid 2px #000000;" onClick = 'document.tuxedoform.pantscolor.value="#000000"; document.tuxedoform.pantscolor.style.backgroundColor ="#000000"; document.tuxedoform.pantscolor.style.color ="#000000";'>
-                    <td style = "width: 16px; height: 16px; background-color: #252d4d; border: solid 2px #000000;" onClick = 'document.tuxedoform.pantscolor.value="#252d4d"; document.tuxedoform.pantscolor.style.backgroundColor ="#252d4d"; document.tuxedoform.pantscolor.style.color ="#252d4d";'>
-                    <td style = "width: 16px; height: 16px; background-color: #616161; border: solid 2px #000000;" onClick = 'document.tuxedoform.pantscolor.value="#616161"; document.tuxedoform.pantscolor.style.backgroundColor ="#616161"; document.tuxedoform.pantscolor.style.color ="#616161";'>
-                    <td style = "width: 16px; height: 16px; background-color: #595248; border: solid 2px #000000;" onClick = 'document.tuxedoform.pantscolor.value="#595248"; document.tuxedoform.pantscolor.style.backgroundColor ="#595248"; document.tuxedoform.pantscolor.style.color ="#595248";'>
-                    <td style = "width: 16px; height: 16px; background-color: #4b5449; border: solid 2px #000000;" onClick = 'document.tuxedoform.pantscolor.value="#4b5449"; document.tuxedoform.pantscolor.style.backgroundColor ="#4b5449"; document.tuxedoform.pantscolor.style.color ="#4b5449";'>
+                    <td style = "width: 16px; height: 16px; background-color: #000000; border: solid 2px #000000;" onClick = 'prefillColor(document.tuxedoform.pantscolor, "#000000");'>
+                    <td style = "width: 16px; height: 16px; background-color: #252d4d; border: solid 2px #000000;" onClick = 'prefillColor(document.tuxedoform.pantscolor, "#252d4d");'>
+                    <td style = "width: 16px; height: 16px; background-color: #616161; border: solid 2px #000000;" onClick = 'prefillColor(document.tuxedoform.pantscolor, "#616161");'>
+                    <td style = "width: 16px; height: 16px; background-color: #595248; border: solid 2px #000000;" onClick = 'prefillColor(document.tuxedoform.pantscolor, "#595248");'>
+                    <td style = "width: 16px; height: 16px; background-color: #4b5449; border: solid 2px #000000;" onClick = 'prefillColor(document.tuxedoform.pantscolor, "#4b5449");'>
                 </tr></table><br>            
-                <font class='label'>Roughness:</font> <input name = 'pantsroughnessvalue' type = 'hidden' size = '5'><br>
-                <input type="range"  style="width:100%;" min="0" max="255" value="0" class="slider" name = 'pantsroughness' id = 'pantsroughness' oninput="update(false); document.tuxedoform.pantsroughnessvalue.value = (this.value);"><br>
+                <font class='label'>Roughness:</font><br>
+                <input type="range"  style="width:100%;" min="0" max="255" value="0" class="slider" name = 'pantsroughness' id = 'pantsroughness' onchange="update(false);"><br>
                 <table style='width:100%'><tr><td style='width: 50%; text-align: left;'><font class = 'Explain'>|&lt; Glossy, polished, lustrous</font></td><td style='width: 50%; text-align: right;'><font class = 'Explain'>Unpolished, mat, rough &gt;|</font></td></tr></table>
-                <font class='label'><br>Metalness:</font> <input name = 'pantsmetallicvalue' type = 'hidden' size = '5'><br>
-                <input type="range"  style="width:100%;" min="2" max="255" value="0" class="slider" name = 'pantsmetallic' id = 'pantsmetallic' oninput="update(false); document.tuxedoform.pantsmetallicvalue.value = (this.value);"><br>
+                <font class='label'><br>Metalness:</font><br>
+                <input type="range"  style="width:100%;" min="2" max="255" value="0" class="slider" name = 'pantsmetallic' id = 'pantsmetallic' onchange="update(false);"><br>
                 <table style='width:100%'><tr><td style='width: 15%; text-align: left;'><font class = 'Explain'>|&lt; Nonmetal</font></td><td style='width: 15%; text-align: left;'><font class = 'Explain'>| Hair</font></td><td style='width: 60%; text-align: left;'><font class = 'Explain'>| Chitin</font></td><td style='width: 10%; text-align: right;'><font class = 'Explain'>Metal &gt;|</font></td></tr></table>
                 </div>
                 
                 <div class='group'><h1>SHIRT</h1>
                 <font class='label'>Color:</font> <input name = 'shirtcolor' type = 'text' value="#e8e8e8"><br>
                 <table><tr>
-                    <td style = "width: 16px; height: 16px; background-color: #e8e8e8; border: solid 2px #000000;" onClick = 'document.tuxedoform.shirtcolor.value="#e8e8e8"; document.tuxedoform.shirtcolor.style.backgroundColor ="#e8e8e8"; document.tuxedoform.shirtcolor.style.color ="#e8e8e8";'>            
-                    <td style = "width: 16px; height: 16px; background-color: #afd4ed; border: solid 2px #000000;" onClick = 'document.tuxedoform.shirtcolor.value="#afd4ed"; document.tuxedoform.shirtcolor.style.backgroundColor ="#afd4ed"; document.tuxedoform.shirtcolor.style.color ="#afd4ed";'>
-                    <td style = "width: 16px; height: 16px; background-color: #f5daf0; border: solid 2px #000000;" onClick = 'document.tuxedoform.shirtcolor.value="#f5daf0"; document.tuxedoform.shirtcolor.style.backgroundColor ="#f5daf0"; document.tuxedoform.shirtcolor.style.color ="#f5daf0";'>
-                    <td style = "width: 16px; height: 16px; background-color: #b1c4ab; border: solid 2px #000000;" onClick = 'document.tuxedoform.shirtcolor.value="#b1c4ab"; document.tuxedoform.shirtcolor.style.backgroundColor ="#b1c4ab"; document.tuxedoform.shirtcolor.style.color ="#b1c4ab";'>
-                    <td style = "width: 16px; height: 16px; background-color: #f7f6d5; border: solid 2px #000000;" onClick = 'document.tuxedoform.shirtcolor.value="#f7f6d5"; document.tuxedoform.shirtcolor.style.backgroundColor ="#f7f6d5"; document.tuxedoform.shirtcolor.style.color ="#f7f6d5";'>
-                    <td style = "width: 16px; height: 16px; background-color: #c9b4d9; border: solid 2px #000000;" onClick = 'document.tuxedoform.shirtcolor.value="#c9b4d9"; document.tuxedoform.shirtcolor.style.backgroundColor ="#c9b4d9"; document.tuxedoform.shirtcolor.style.color ="#c9b4d9";'>
-                    <td style = "width: 16px; height: 16px; background-color: #30345c; border: solid 2px #000000;" onClick = 'document.tuxedoform.shirtcolor.value="#30345c"; document.tuxedoform.shirtcolor.style.backgroundColor ="#30345c"; document.tuxedoform.shirtcolor.style.color ="#30345c";'>
-                    <td style = "width: 16px; height: 16px; background-color: #383634; border: solid 2px #000000;" onClick = 'document.tuxedoform.shirtcolor.value="#383634"; document.tuxedoform.shirtcolor.style.backgroundColor ="#383634"; document.tuxedoform.shirtcolor.style.color ="#383634";'>
+                    <td style = "width: 16px; height: 16px; background-color: #e8e8e8; border: solid 2px #000000;" onClick = 'prefillColor(document.tuxedoform.shirtcolor, "#e8e8e8");'>            
+                    <td style = "width: 16px; height: 16px; background-color: #afd4ed; border: solid 2px #000000;" onClick = 'prefillColor(document.tuxedoform.shirtcolor, "#afd4ed");'>
+                    <td style = "width: 16px; height: 16px; background-color: #f5daf0; border: solid 2px #000000;" onClick = 'prefillColor(document.tuxedoform.shirtcolor, "#f5daf0");'>
+                    <td style = "width: 16px; height: 16px; background-color: #b1c4ab; border: solid 2px #000000;" onClick = 'prefillColor(document.tuxedoform.shirtcolor, "#b1c4ab");'>
+                    <td style = "width: 16px; height: 16px; background-color: #f7f6d5; border: solid 2px #000000;" onClick = 'prefillColor(document.tuxedoform.shirtcolor, "#f7f6d5");'>
+                    <td style = "width: 16px; height: 16px; background-color: #c9b4d9; border: solid 2px #000000;" onClick = 'prefillColor(document.tuxedoform.shirtcolor, "#c9b4d9");'>
+                    <td style = "width: 16px; height: 16px; background-color: #30345c; border: solid 2px #000000;" onClick = 'prefillColor(document.tuxedoform.shirtcolor, "#30345c");'>
+                    <td style = "width: 16px; height: 16px; background-color: #383634; border: solid 2px #000000;" onClick = 'prefillColor(document.tuxedoform.shirtcolor, "#383634");'>
                 </tr></table><br>            
-                <font class='label'>Roughness:</font> <input name = 'shirtroughnessvalue' type = 'hidden' size = '5'><br>
-                <input type="range"  style="width:100%;" min="0" max="255" value="0" class="slider" name = 'shirtroughness' id = 'shirtroughness' oninput="update(false); document.tuxedoform.shirtroughnessvalue.value = (this.value);"><br>
+                <font class='label'>Roughness:</font><br>
+                <input type="range"  style="width:100%;" min="0" max="255" value="0" class="slider" name = 'shirtroughness' id = 'shirtroughness' onchange="update(false);"><br>
                 <table style='width:100%'><tr><td style='width: 50%; text-align: left;'><font class = 'Explain'>|&lt; Glossy, polished, lustrous</font></td><td style='width: 50%; text-align: right;'><font class = 'Explain'>Unpolished, mat, rough &gt;|</font></td></tr></table>
-                <font class='label'><br>Metalness:</font> <input name = 'shirtmetallicvalue' type = 'hidden' size = '5'><br>
-                <input type="range"  style="width:100%;" min="2" max="255" value="0" class="slider" name = 'shirtmetallic' id = 'shirtmetallic' oninput="update(false); document.tuxedoform.shirtmetallicvalue.value = (this.value);"><br>
+                <font class='label'><br>Metalness:</font><br>
+                <input type="range"  style="width:100%;" min="2" max="255" value="0" class="slider" name = 'shirtmetallic' id = 'shirtmetallic' onchange="update(false);"><br>
                 <table style='width:100%'><tr><td style='width: 15%; text-align: left;'><font class = 'Explain'>|&lt; Nonmetal</font></td><td style='width: 15%; text-align: left;'><font class = 'Explain'>| Hair</font></td><td style='width: 60%; text-align: left;'><font class = 'Explain'>| Chitin</font></td><td style='width: 10%; text-align: right;'><font class = 'Explain'>Metal &gt;|</font></td></tr></table>
                 </div>
                 
                 <div class='group'><h1>SHOES</h1>
                 <font class='label'>Color:</font> <input name = 'shoescolor' type = 'text' value="#000000"><br>
                 <table><tr>
-                    <td style = "width: 16px; height: 16px; background-color: #000000; border: solid 2px #000000;" onClick = 'document.tuxedoform.shoescolor.value="#000000"; document.tuxedoform.shoescolor.style.backgroundColor ="#000000"; document.tuxedoform.shoescolor.style.color ="#000000";'>            
-                    <td style = "width: 16px; height: 16px; background-color: #402b20; border: solid 2px #000000;" onClick = 'document.tuxedoform.shoescolor.value="#402b20"; document.tuxedoform.shoescolor.style.backgroundColor ="#402b20"; document.tuxedoform.shoescolor.style.color ="#402b20";'>
-                    <td style = "width: 16px; height: 16px; background-color: #470615; border: solid 2px #000000;" onClick = 'document.tuxedoform.shoescolor.value="#470615"; document.tuxedoform.shoescolor.style.backgroundColor ="#470615"; document.tuxedoform.shoescolor.style.color ="#470615";'>
-                    <td style = "width: 16px; height: 16px; background-color: #6e4d2e; border: solid 2px #000000;" onClick = 'document.tuxedoform.shoescolor.value="#6e4d2e"; document.tuxedoform.shoescolor.style.backgroundColor ="#6e4d2e"; document.tuxedoform.shoescolor.style.color ="#6e4d2e";'>
-                    <td style = "width: 16px; height: 16px; background-color: #2f3d54; border: solid 2px #000000;" onClick = 'document.tuxedoform.shoescolor.value="#2f3d54"; document.tuxedoform.shoescolor.style.backgroundColor ="#2f3d54"; document.tuxedoform.shoescolor.style.color ="#2f3d54";'>
-                    <td style = "width: 16px; height: 16px; background-color: #dedbd9; border: solid 2px #000000;" onClick = 'document.tuxedoform.shoescolor.value="#dedbd9"; document.tuxedoform.shoescolor.style.backgroundColor ="#dedbd9"; document.tuxedoform.shoescolor.style.color ="#dedbd9";'>
+                    <td style = "width: 16px; height: 16px; background-color: #000000; border: solid 2px #000000;" onClick = 'prefillColor(document.tuxedoform.shoescolor, "#000000");'>            
+                    <td style = "width: 16px; height: 16px; background-color: #402b20; border: solid 2px #000000;" onClick = 'prefillColor(document.tuxedoform.shoescolor, "#402b20");'>
+                    <td style = "width: 16px; height: 16px; background-color: #470615; border: solid 2px #000000;" onClick = 'prefillColor(document.tuxedoform.shoescolor, "#470615");'>
+                    <td style = "width: 16px; height: 16px; background-color: #6e4d2e; border: solid 2px #000000;" onClick = 'prefillColor(document.tuxedoform.shoescolor, "#6e4d2e");'>
+                    <td style = "width: 16px; height: 16px; background-color: #2f3d54; border: solid 2px #000000;" onClick = 'prefillColor(document.tuxedoform.shoescolor, "#2f3d54");'>
+                    <td style = "width: 16px; height: 16px; background-color: #dedbd9; border: solid 2px #000000;" onClick = 'prefillColor(document.tuxedoform.shoescolor, "#dedbd9");'>
                 </tr></table><br>            
-                <font class='label'>Roughness:</font> <input name = 'shoesroughnessvalue' type = 'hidden' size = '5'><br>
-                <input type="range"  style="width:100%;" min="0" max="255" value="0" class="slider" name = 'shoesroughness' id = 'shoesroughness' oninput="update(false); document.tuxedoform.shoesroughnessvalue.value = (this.value);"><br>
+                <font class='label'>Roughness:</font><br>
+                <input type="range"  style="width:100%;" min="0" max="255" value="0" class="slider" name = 'shoesroughness' id = 'shoesroughness' onchange="update(false);"><br>
                 <table style='width:100%'><tr><td style='width: 50%; text-align: left;'><font class = 'Explain'>|&lt; Glossy, polished, lustrous</font></td><td style='width: 50%; text-align: right;'><font class = 'Explain'>Unpolished, mat, rough &gt;|</font></td></tr></table>
-                <font class='label'><br>Metalness:</font> <input name = 'shoesmetallicvalue' type = 'hidden' size = '5'><br>
-                <input type="range"  style="width:100%;" min="2" max="255" value="0" class="slider" name = 'shoesmetallic' id = 'shoesmetallic' oninput="update(false); document.tuxedoform.shoesmetallicvalue.value = (this.value);"><br>
+                <font class='label'><br>Metalness:</font><br>
+                <input type="range"  style="width:100%;" min="2" max="255" value="0" class="slider" name = 'shoesmetallic' id = 'shoesmetallic' onchange="update(false);"><br>
                 <table style='width:100%'><tr><td style='width: 15%; text-align: left;'><font class = 'Explain'>|&lt; Nonmetal</font></td><td style='width: 15%; text-align: left;'><font class = 'Explain'>| Hair</font></td><td style='width: 60%; text-align: left;'><font class = 'Explain'>| Chitin</font></td><td style='width: 10%; text-align: right;'><font class = 'Explain'>Metal &gt;|</font></td></tr></table>
                 </div>
                 
