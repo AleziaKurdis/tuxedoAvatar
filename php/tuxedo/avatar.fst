@@ -5,16 +5,6 @@ if ((isset($_GET["dna"])) && (!empty($_GET["dna"]))){
     $dna = "Y_FFFFFFCC00AA_FFFFFFCC00AA_FFFFFFCC00AA_FFFFFFCC00AA_FFFFFFCC00AA_FFFFFFCC00AA_FFFFFFCC00AA_FFFFFFCC00AA"; //default
 }
 
-//Clean materials folder ######################################
- $dir = getcwd()."/materials/";     //dir absolute path
- $interval = strtotime('-15 minutes');    //files older than 15 minutes
-
-foreach (glob($dir."*") as $file) {
-    //delete if older
-    if (filemtime($file) <= $interval ) {
-        unlink($file);
-    }
-}
 //##############################################################
 
 $materials = array();
@@ -147,9 +137,8 @@ echo("materialMap = [");
 
 $materialMap = "";
 foreach ($materials as $key => $value) {
-    $filename = 'material_'.$model.'_'.$key.'_'.$value.'.json';
-    generateMaterialJson($model, $key, $value, $filename);
-    $materialJson = '{"mat::'.$key.'":"http:/'.'/metaverse.bashora.com/tuxedo/materials/'.$filename.'"},';
+    $materialContent = generateMaterialJson($model, $key, $value);
+    $materialJson = '{"mat::'.$key.'": '.$materialContent.'},';
     $materialMap = $materialMap.$materialJson;
 }
 
@@ -158,37 +147,37 @@ echo($materialMap);
 echo("]\n");
 
 //###################################################################################
-function generateMaterialJson($thisModel, $matname, $genome, $fileName) {
+function generateMaterialJson($thisModel, $matname, $genome) {
     $materialData = getMaterialData($genome);
-    $content = '{"materials":[{'."\n";
-    $content = $content.'    "name": "'.$matname.'",'."\n";
+    $content = '{"materials":[{';
+    $content = $content.' "name": "'.$matname.'",';
     //ALBEDO
     if ($matname == "EYES") {
-        $content = $content.'    "albedo": {'."\n";
-        $content = $content.'        "red": 1,'."\n";
-        $content = $content.'        "green": 1,'."\n";
-        $content = $content.'        "blue": 1'."\n";
-        $content = $content.'    },'."\n";
+        $content = $content.' "albedo": {';
+        $content = $content.' "red": 1,';
+        $content = $content.' "green": 1,';
+        $content = $content.' "blue": 1';
+        $content = $content.' },';
     } else {
-        $content = $content.'    "albedo": {'."\n";
-        $content = $content.'        "red": '.$materialData["red"].','."\n";
-        $content = $content.'        "green": '.$materialData["green"].','."\n";
-        $content = $content.'        "blue": '.$materialData["blue"].''."\n";
-        $content = $content.'    },'."\n";    
+        $content = $content.' "albedo": {';
+        $content = $content.' "red": '.$materialData["red"].',';
+        $content = $content.' "green": '.$materialData["green"].',';
+        $content = $content.' "blue": '.$materialData["blue"].'';
+        $content = $content.' },';    
     }
 
     //ROUGHNESS & METALLIC
     if ($matname == "EYES"){
-        $content = $content.'    "roughness": 0.064,'."\n";
-        $content = $content.'    "metallic": 0.01,'."\n";
+        $content = $content.' "roughness": 0.064,';
+        $content = $content.' "metallic": 0.01,';
     } elseif ($matname == "BODY"){
-        $content = $content.'    "roughness": 0.65,'."\n";
-        $content = $content.'    "metallic": 0.01,'."\n";       
+        $content = $content.' "roughness": 0.65,';
+        $content = $content.' "metallic": 0.01,';       
     } elseif ($matname == "HEAD"){
-        $content = $content.'    "metallic": 0.01,'."\n";       
+        $content = $content.' "metallic": 0.01,';       
     } else {
-        $content = $content.'    "roughness": '.$materialData["roughness"].','."\n";
-        $content = $content.'    "metallic": '.$materialData["metallic"].','."\n";    
+        $content = $content.' "roughness": '.$materialData["roughness"].',';
+        $content = $content.' "metallic": '.$materialData["metallic"].',';    
     }
 
     //ALBEDO MAP
@@ -196,26 +185,26 @@ function generateMaterialJson($thisModel, $matname, $genome, $fileName) {
         if ($matname == "EYES"){
             switch ($materialData["albedoMap"]) {
                 case "A": //brown
-                    $content = $content.'    "albedoMap": "https:/'.'/aleziakurdis.github.io/tuxedoAvatar/tuxedo/maps/MALE_TUXEDO_EYES_BROWN.jpg",'."\n";
+                    $content = $content.' "albedoMap": "https:/'.'/aleziakurdis.github.io/tuxedoAvatar/tuxedo/maps/MALE_TUXEDO_EYES_BROWN.jpg",';
                     break;
                 case "B": //blue
-                    $content = $content.'    "albedoMap": "https:/'.'/aleziakurdis.github.io/tuxedoAvatar/tuxedo/maps/MALE_TUXEDO_EYES_BLUE.jpg",'."\n";
+                    $content = $content.' "albedoMap": "https:/'.'/aleziakurdis.github.io/tuxedoAvatar/tuxedo/maps/MALE_TUXEDO_EYES_BLUE.jpg",';
                     break;
                 case "C": //green
-                    $content = $content.'    "albedoMap": "https:/'.'/aleziakurdis.github.io/tuxedoAvatar/tuxedo/maps/MALE_TUXEDO_EYES_GREEN.jpg",'."\n";
+                    $content = $content.' "albedoMap": "https:/'.'/aleziakurdis.github.io/tuxedoAvatar/tuxedo/maps/MALE_TUXEDO_EYES_GREEN.jpg",';
                     break;
             }            
         } elseif ($matname == "BODY"){
             if ($thisModel == "Y") {
-                $content = $content.'    "albedoMap": "https:/'.'/aleziakurdis.github.io/tuxedoAvatar/tuxedo/maps/MALE_TUDEXO_BODY_ALBEDO.jpg",'."\n";            
+                $content = $content.' "albedoMap": "https:/'.'/aleziakurdis.github.io/tuxedoAvatar/tuxedo/maps/MALE_TUDEXO_BODY_ALBEDO.jpg",';            
             }
             if ($thisModel == "X") {
                 //TBD
             }            
         } elseif ($matname == "HEAD"){
             if ($thisModel == "Y") {
-                $content = $content.'    "albedoMap": "https:/'.'/aleziakurdis.github.io/tuxedoAvatar/tuxedo/maps/MALE_TUDEXO_HEAD_ALBEDO.jpg",'."\n";
-                $content = $content.'    "roughnessMap": "https:/'.'/aleziakurdis.github.io/tuxedoAvatar/tuxedo/maps/MALE_TUDEXO_HEAD_ROUGHNESS.jpg",'."\n";            
+                $content = $content.' "albedoMap": "https:/'.'/aleziakurdis.github.io/tuxedoAvatar/tuxedo/maps/MALE_TUDEXO_HEAD_ALBEDO.jpg",';
+                $content = $content.' "roughnessMap": "https:/'.'/aleziakurdis.github.io/tuxedoAvatar/tuxedo/maps/MALE_TUDEXO_HEAD_ROUGHNESS.jpg",';            
             }
             if ($thisModel == "X") {
                 //TBD
@@ -231,21 +220,21 @@ function generateMaterialJson($thisModel, $matname, $genome, $fileName) {
             //none
         } elseif ($key == "BODY"){
             if ($thisModel == "Y") {
-                $content = $content.'    "normalMap": "https:/'.'/aleziakurdis.github.io/tuxedoAvatar/tuxedo/maps/MALE_TUDEXO_BODY_NORMAL.jpg",'."\n";            
+                $content = $content.' "normalMap": "https:/'.'/aleziakurdis.github.io/tuxedoAvatar/tuxedo/maps/MALE_TUDEXO_BODY_NORMAL.jpg",';            
             }
             if ($thisModel == "X") {
                 //TBD
             }            
         } elseif ($matname == "HEAD"){
              if ($thisModel == "Y") {
-                $content = $content.'    "normalMap": "https:/'.'/aleziakurdis.github.io/tuxedoAvatar/tuxedo/maps/MALE_TUDEXO_HEAD_NORMAL.jpg",'."\n";
+                $content = $content.' "normalMap": "https:/'.'/aleziakurdis.github.io/tuxedoAvatar/tuxedo/maps/MALE_TUDEXO_HEAD_NORMAL.jpg",';
             }
             if ($thisModel == "X") {
                 //TBD
             }           
         } elseif ($matname == "HAIR"){
             if ($thisModel == "Y") {
-                $content = $content.'    "normalMap": "https:/'.'/aleziakurdis.github.io/tuxedoAvatar/tuxedo/maps/MALE_TUXEDO_HAIR_NORMAL.jpg",'."\n";            
+                $content = $content.' "normalMap": "https:/'.'/aleziakurdis.github.io/tuxedoAvatar/tuxedo/maps/MALE_TUXEDO_HAIR_NORMAL.jpg",';            
             }
             if ($thisModel == "X") {
                 //TBD
@@ -260,14 +249,11 @@ function generateMaterialJson($thisModel, $matname, $genome, $fileName) {
         }        
     }
 
-    $content = $content.'    "cullFaceMode": "CULL_BACK",'."\n";
-    $content = $content.'    "defaultFallthrough": false'."\n";
-    $content = $content.'}]}'."\n";
+    $content = $content.' "cullFaceMode": "CULL_BACK",';
+    $content = $content.' "defaultFallthrough": false';
+    $content = $content.'}]}';
     
-    //save file
-    $fh = fopen("materials/".$fileName, 'w') or die("can't open file");
-    fwrite($fh, $content);
-    fclose($fh);
+    return $content;
 }
 
 //###########################################################
